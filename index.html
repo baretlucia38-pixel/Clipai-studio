@@ -7,9 +7,9 @@
 <title>ClipAI Studio</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#10101a;color:#fff;font-family:Arial,sans-serif;padding:20px}
+body{margin:0;padding:20px;background:#10101a;color:white;font-family:Arial,sans-serif}
 main{max-width:850px;margin:auto}
-h1{color:#c5a4ff;text-align:center}
+h1{text-align:center;color:#c5a4ff}
 p{color:#c7c5d2}
 .card{background:#1d1c2b;padding:18px;border-radius:15px;margin:16px 0}
 label{display:block;margin:12px 0 6px}
@@ -21,6 +21,7 @@ video{width:100%;max-height:400px;background:#000;border-radius:10px;margin-top:
 #preview{display:block;width:100%;max-height:420px}
 #caption{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);width:90%;text-align:center;font-size:28px;font-weight:bold;color:white;text-shadow:2px 2px 4px black;pointer-events:none;white-space:pre-wrap}
 .small{font-size:13px;color:#aaa}
+input[type=range]{width:100%}
 </style>
 </head>
 <body>
@@ -29,7 +30,16 @@ video{width:100%;max-height:400px;background:#000;border-radius:10px;margin-top:
 <p style="text-align:center">Tu espacio para crear y editar clips</p>
 
 <section class="card">
-<h2>1. Sube tu video</h2>
+<h2>1. Añade tu video</h2>
+<label>📎 Pegar enlace de YouTube</label>
+<input id="youtube" type="text" placeholder="https://www.youtube.com/watch?v=...">
+<button id="checkLink">Usar enlace</button>
+<p id="linkStatus" class="small">La integración para procesar enlaces de YouTube se añadirá en una próxima etapa.</p>
+<div id="youtubePreview"></div>
+
+<hr style="border-color:#444;margin:22px 0">
+
+<label>📁 Subir video desde tu computadora</label>
 <input id="file" type="file" accept="video/*">
 <video id="video" controls></video>
 <p class="small">Usa videos propios o que tengas permiso para editar.</p>
@@ -80,14 +90,13 @@ video{width:100%;max-height:400px;background:#000;border-radius:10px;margin-top:
 <video id="preview" muted playsinline></video>
 <div id="caption"></div>
 </div>
-<p class="small">La vista previa muestra el texto sobre el video.</p>
+<p class="small">Vista previa del texto sobre el video.</p>
 </section>
 
 <section class="card">
 <h2>5. Exportar</h2>
 <button id="export">Crear y descargar clip</button>
-<p id="status" class="small">Tu clip estará listo para exportar cuando cargues un video.</p>
-<a id="download" style="color:#c5a4ff"></a>
+<p id="status" class="small">Sube un video para comenzar.</p>
 </section>
 </main>
 
@@ -98,6 +107,14 @@ const preview=document.getElementById('preview');
 const caption=document.getElementById('caption');
 const status=document.getElementById('status');
 let sourceURL=null;
+
+document.getElementById('checkLink').onclick=()=>{
+ const link=document.getElementById('youtube').value.trim();
+ const valid=/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(link);
+ document.getElementById('linkStatus').textContent=valid
+ ?'Enlace reconocido. La importación y edición directa de YouTube aún requiere una integración de servidor.'
+ :'Escribe un enlace válido de YouTube.';
+};
 
 file.addEventListener('change',()=>{
  if(!file.files.length)return;
@@ -127,7 +144,7 @@ document.getElementById('apply').onclick=()=>{
 };
 
 document.getElementById('export').onclick=async()=>{
- if(!sourceURL){status.textContent='Primero debes subir un video.';return;}
+ if(!sourceURL){status.textContent='Primero sube un video desde tu computadora.';return;}
  if(!window.MediaRecorder){status.textContent='Tu navegador no permite exportar este video.';return;}
  const start=Math.max(0,Number(document.getElementById('start').value)||0);
  const end=Math.min(video.duration,Number(document.getElementById('end').value)||video.duration);
