@@ -1,222 +1,322 @@
 
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#10101b">
 <title>ClipAI Studio</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:20px;background:#10101a;color:white;font-family:Arial,sans-serif}
-main{max-width:850px;margin:auto}
-h1{text-align:center;color:#c5a4ff}
-p{color:#c7c5d2}
-.card{background:#1d1c2b;padding:18px;border-radius:15px;margin:16px 0}
-label{display:block;margin:12px 0 6px}
-input,select,button{padding:11px;border-radius:8px;border:1px solid #555;background:#29283b;color:white;max-width:100%}
-input[type=text],input[type=number]{width:100%}
-button{background:#895de6;border:0;cursor:pointer;font-weight:bold;margin:8px 5px 0 0}
-video{width:100%;max-height:400px;background:#000;border-radius:10px;margin-top:12px}
-#stage{position:relative;background:#000;border-radius:10px;overflow:hidden}
-#preview{display:block;width:100%;max-height:420px}
-#caption{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);width:90%;text-align:center;font-size:28px;font-weight:bold;color:white;text-shadow:2px 2px 4px black;pointer-events:none;white-space:pre-wrap}
-.small{font-size:13px;color:#aaa}
-input[type=range]{width:100%}
+body{
+ margin:0;
+ background:#10101b;
+ color:white;
+ font-family:Arial,sans-serif;
+}
+header{
+ padding:22px;
+ text-align:center;
+ background:#19192a;
+ border-bottom:1px solid #33334a;
+}
+header h1{margin:0;color:#b99aff}
+header p{color:#aaa}
+main{max-width:950px;margin:auto;padding:20px}
+.panel{
+ background:#1b1b2d;
+ border:1px solid #35354e;
+ border-radius:16px;
+ padding:20px;
+ margin-bottom:20px;
+}
+h2{color:#c8aaff}
+input,select,textarea{
+ width:100%;
+ padding:12px;
+ margin:8px 0 14px;
+ border-radius:9px;
+ border:1px solid #494963;
+ background:#10101b;
+ color:white;
+}
+button{
+ padding:12px 18px;
+ border:0;
+ border-radius:9px;
+ background:#a77bff;
+ color:white;
+ font-weight:bold;
+ cursor:pointer;
+ margin:5px 3px;
+}
+button:hover{background:#8955ee}
+.secondary{background:#393950}
+video{
+ width:100%;
+ max-height:420px;
+ background:black;
+ border-radius:12px;
+ margin-top:12px;
+}
+.grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+ gap:14px;
+}
+.small{color:#aaa;font-size:13px}
+#subtitlePreview{
+ position:relative;
+ text-align:center;
+ font-size:26px;
+ font-weight:bold;
+ padding:15px;
+ color:white;
+ text-shadow:2px 2px 4px black;
+}
+.hidden{display:none}
+.status{color:#c8aaff;min-height:22px}
 </style>
 </head>
+
 <body>
+
+<header>
+ <h1>✨ ClipAI Studio</h1>
+ <p>Tu espacio para crear y editar clips</p>
+</header>
+
 <main>
-<h1>✦ ClipAI Studio</h1>
-<p style="text-align:center">Tu espacio para crear y editar clips</p>
 
-<section class="card">
-<h2>1. Añade tu video</h2>
-<label>📎 Pegar enlace de YouTube</label>
-<input id="youtube" type="text" placeholder="https://www.youtube.com/watch?v=...">
-<button id="checkLink">Usar enlace</button>
-<p id="linkStatus" class="small">La importación directa de YouTube requiere una integración adicional.</p>
-<div id="youtubePreview"></div>
-<hr style="border-color:#444;margin:22px 0">
-<label>📁 Subir video desde tu computadora</label>
-<input id="file" type="file" accept="video/*">
-<video id="video" controls></video>
-<p class="small">Usa videos propios o que tengas permiso para editar.</p>
+<section class="panel">
+ <h2>🎬 Comienza tu proyecto</h2>
+ <p>Elige cómo quieres añadir tu video. Las dos opciones son opcionales.</p>
+
+ <div class="grid">
+  <div>
+   <h3>🔗 Enlace de YouTube</h3>
+   <input id="youtubeLink" type="url"
+    placeholder="Pega tu enlace aquí (opcional)">
+   <button onclick="checkLink()">Usar enlace</button>
+   <p class="small">La importación de YouTube requiere un servicio de servidor.</p>
+  </div>
+
+  <div>
+   <h3>📁 Desde tu computadora</h3>
+   <input id="videoFile" type="file" accept="video/*">
+   <p class="small">Selecciona un video guardado en tu dispositivo.</p>
+  </div>
+ </div>
+
+ <button onclick="continueWithoutVideo()" class="secondary">
+  Continuar sin video
+ </button>
+ <p id="startStatus" class="status"></p>
 </section>
 
-<section class="card">
-<h2>2. Selecciona tu clip</h2>
-<label>Inicio (segundos)</label>
-<input id="start" type="number" min="0" value="0" step="0.1">
-<label>Final (segundos)</label>
-<input id="end" type="number" min="0" value="10" step="0.1">
-<button id="go">Ir al inicio</button>
+<section class="panel">
+ <h2>✂️ Editor de clips</h2>
+
+ <p class="small">Puedes entrar y configurar tu proyecto aunque todavía no hayas añadido un video.</p>
+
+ <video id="video" controls playsinline></video>
+
+ <div class="grid">
+  <div>
+   <label>Inicio del clip (segundos)</label>
+   <input id="startTime" type="number" min="0" value="0">
+  </div>
+  <div>
+   <label>Final del clip (segundos)</label>
+   <input id="endTime" type="number" min="0" value="15">
+  </div>
+ </div>
+
+ <button onclick="previewClip()">Vista previa del clip</button>
+ <button onclick="downloadClip()">Exportar clip</button>
+
+ <p id="editStatus" class="status"></p>
 </section>
 
-<section class="card">
-<h2>3. Personaliza tus subtítulos</h2>
-<label>Texto del subtítulo</label>
-<input id="words" type="text" placeholder="Escribe aquí tu subtítulo">
-<label>Estilo</label>
-<select id="style">
-<option value="classic">Clásico</option>
-<option value="tiktok">TikTok</option>
-<option value="minimal">Minimalista</option>
-</select>
-<label>Tipo de letra</label>
-<select id="font">
-<option>Arial</option>
-<option>Georgia</option>
-<option>Verdana</option>
-<option>Impact</option>
-</select>
-<label>Color de letra</label>
-<input id="color" type="color" value="#ffffff">
-<label>Tamaño</label>
-<input id="size" type="range" min="14" max="60" value="28">
-<label>Posición</label>
-<select id="position">
-<option value="12%">Abajo</option>
-<option value="45%">Centro</option>
-<option value="75%">Arriba</option>
-</select>
-<button id="apply">Aplicar subtítulo</button>
+<section class="panel">
+ <h2>💬 Subtítulos personalizados</h2>
+
+ <label>Texto del subtítulo</label>
+ <textarea id="subtitleText" rows="3"
+ placeholder="Escribe aquí tu subtítulo..."></textarea>
+
+ <div class="grid">
+  <div>
+   <label>Estilo</label>
+   <select id="subtitleStyle" onchange="updateSubtitle()">
+    <option value="classic">Clásico</option>
+    <option value="minimal">Minimalista</option>
+    <option value="tiktok">Tipo TikTok</option>
+   </select>
+  </div>
+
+  <div>
+   <label>Tipo de letra</label>
+   <select id="fontFamily" onchange="updateSubtitle()">
+    <option value="Arial">Arial</option>
+    <option value="Georgia">Georgia</option>
+    <option value="Impact">Impact</option>
+    <option value="Verdana">Verdana</option>
+   </select>
+  </div>
+
+  <div>
+   <label>Tamaño</label>
+   <input id="fontSize" type="range" min="14" max="55" value="26"
+    oninput="updateSubtitle()">
+  </div>
+
+  <div>
+   <label>Color</label>
+   <input id="fontColor" type="color" value="#ffffff"
+    oninput="updateSubtitle()">
+  </div>
+
+  <div>
+   <label>Fondo</label>
+   <input id="backgroundColor" type="color" value="#000000"
+    oninput="updateSubtitle()">
+  </div>
+
+  <div>
+   <label>Posición</label>
+   <select id="subtitlePosition" onchange="updateSubtitle()">
+    <option value="center">Centro</option>
+    <option value="top">Arriba</option>
+    <option value="bottom">Abajo</option>
+   </select>
+  </div>
+ </div>
+
+ <h3>Vista previa del subtítulo</h3>
+ <div id="subtitlePreview">Tu subtítulo aparecerá aquí</div>
 </section>
 
-<section class="card">
-<h2>4. Vista previa</h2>
-<div id="stage">
-<video id="preview" muted playsinline></video>
-<div id="caption"></div>
-</div>
-<p class="small">Vista previa del texto sobre el video.</p>
+<section class="panel">
+ <h2>📐 Formato del video</h2>
+ <select id="aspectRatio">
+  <option value="9/16">Vertical - TikTok / Reels</option>
+  <option value="16/9">Horizontal - YouTube</option>
+  <option value="1/1">Cuadrado</option>
+ </select>
+ <p class="small">La selección de formato se guarda para configurar tu proyecto.</p>
 </section>
 
-<section class="card">
-<h2>5. Exportar</h2>
-<button id="export">Crear y descargar clip</button>
-<p id="status" class="small">Sube un video para comenzar.</p>
-</section>
 </main>
 
 <script>
-const file=document.getElementById('file');
-const video=document.getElementById('video');
-const preview=document.getElementById('preview');
-const caption=document.getElementById('caption');
-const status=document.getElementById('status');
-let sourceURL=null;
+const video = document.getElementById("video");
+const fileInput = document.getElementById("videoFile");
+let videoURL = null;
+let recording = false;
 
-document.getElementById('checkLink').onclick=()=>{
- const link=document.getElementById('youtube').value.trim();
- const valid=/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(link);
- document.getElementById('linkStatus').textContent=valid
- ?'Enlace reconocido. La importación y edición directa todavía requiere una integración de servidor.'
- :'Escribe un enlace válido de YouTube.';
-};
+fileInput.addEventListener("change", function(){
+ const file = this.files[0];
+ if(!file) return;
 
-file.addEventListener('change',()=>{
- if(!file.files.length)return;
- if(sourceURL)URL.revokeObjectURL(sourceURL);
- sourceURL=URL.createObjectURL(file.files[0]);
- video.src=sourceURL;
- preview.src=sourceURL;
- video.onloadedmetadata=()=>{
-  document.getElementById('end').value=Math.floor(video.duration);
-  status.textContent='Video cargado. Ya puedes editarlo.';
- };
+ if(videoURL) URL.revokeObjectURL(videoURL);
+ videoURL = URL.createObjectURL(file);
+ video.src = videoURL;
+ video.load();
+
+ document.getElementById("startStatus").textContent =
+ "Video cargado correctamente.";
 });
 
-document.getElementById('go').onclick=()=>{
- video.currentTime=Math.max(0,Number(document.getElementById('start').value)||0);
-};
+function checkLink(){
+ const link = document.getElementById("youtubeLink").value.trim();
+ const status = document.getElementById("startStatus");
 
-document.getElementById('apply').onclick=()=>{
- caption.textContent=document.getElementById('words').value;
- caption.style.color=document.getElementById('color').value;
- caption.style.fontSize=document.getElementById('size').value+'px';
- caption.style.fontFamily=document.getElementById('font').value;
- caption.style.bottom=document.getElementById('position').value;
- const style=document.getElementById('style').value;
- caption.style.background=style==='tiktok'?'rgba(0,0,0,.55)':'transparent';
- caption.style.padding=style==='minimal'?'4px':'8px 12px';
-};
-
-document.getElementById('export').onclick=async()=>{
- if(!sourceURL){status.textContent='Primero sube un video desde tu computadora.';return;}
- if(!window.MediaRecorder){status.textContent='Tu navegador no permite exportar este video.';return;}
- const start=Math.max(0,Number(document.getElementById('start').value)||0);
- const end=Math.min(video.duration,Number(document.getElementById('end').value)||video.duration);
- if(end<=start){status.textContent='El final debe ser después del inicio.';return;}
- status.textContent='Preparando el clip...';
- try{
-  const canvas=document.createElement('canvas');
-  const w=video.videoWidth,h=video.videoHeight;
-  if(!w||!h)throw Error('No se pudo leer el video.');
-  canvas.width=w;canvas.height=h;
-  const ctx=canvas.getContext('2d');
-  const stream=canvas.captureStream(30);
-  if(video.captureStream){
-   const audioStream=video.captureStream();
-   audioStream.getAudioTracks().forEach(t=>stream.addTrack(t));
-  }
-  const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']
-   .find(t=>MediaRecorder.isTypeSupported(t));
-  if(!mime)throw Error('Formato no compatible.');
-  const recorder=new MediaRecorder(stream,{mimeType:mime});
-  const chunks=[];
-  recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
-  const finished=new Promise(resolve=>recorder.onstop=resolve);
-  video.pause();
-  video.currentTime=start;
-  await new Promise(resolve=>video.onseeked=resolve);
-  recorder.start();
-  video.play();
-  let stopped=false;
-  function draw(){
-   if(stopped)return;
-   ctx.drawImage(video,0,0,w,h);
-   const text=caption.textContent;
-   if(text){
-    const size=Number(document.getElementById('size').value);
-    ctx.font='bold '+size+'px '+document.getElementById('font').value;
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    const lines=text.split('\n');
-    const y=h*(1-parseFloat(document.getElementById('position').value)/100);
-    if(document.getElementById('style').value==='tiktok'){
-     const maxWidth=w*.9;
-     const widest=Math.max(...lines.map(line=>ctx.measureText(line).width));
-     ctx.fillStyle='rgba(0,0,0,.55)';
-     ctx.fillRect((w-Math.min(maxWidth,widest+24))/2,y-lines.length*size*.65/2,Math.min(maxWidth,widest+24),lines.length*size*1.3);
-    }
-    ctx.fillStyle=document.getElementById('color').value;
-    ctx.shadowColor='black';ctx.shadowBlur=5;
-    lines.forEach((line,i)=>ctx.fillText(line,w/2,y+(i-(lines.length-1)/2)*size*1.25,w*.9));
-    ctx.shadowBlur=0;
-   }
-   if(video.currentTime>=end){
-    stopped=true;video.pause();recorder.stop();return;
-   }
-   requestAnimationFrame(draw);
-  }
-  requestAnimationFrame(draw);
-  video.ontimeupdate=()=>{
-   if(video.currentTime>=end&&!stopped){
-    stopped=true;video.pause();recorder.stop();
-   }
-  };
-  await finished;
-  video.ontimeupdate=null;
-  const blob=new Blob(chunks,{type:mime});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download='ClipAI-Studio.webm';a.click();
-  status.textContent='¡Clip creado! Se descargó en formato WebM.';
-  video.currentTime=start;
- }catch(err){
-  status.textContent='No se pudo exportar: '+err.message;
+ if(!link){
+  status.textContent = "Puedes continuar sin añadir un enlace.";
+  return;
  }
-};
+
+ if(!/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i.test(link)){
+  status.textContent = "Escribe un enlace válido de YouTube.";
+  return;
+ }
+
+ status.textContent =
+ "Enlace reconocido. Para importar el video hace falta integrar un servidor.";
+}
+
+function continueWithoutVideo(){
+ document.getElementById("startStatus").textContent =
+ "Proyecto abierto. Puedes añadir un video cuando quieras.";
+}
+
+function updateSubtitle(){
+ const preview = document.getElementById("subtitlePreview");
+ const text = document.getElementById("subtitleText").value;
+ const style = document.getElementById("subtitleStyle").value;
+
+ preview.textContent = text || "Tu subtítulo aparecerá aquí";
+ preview.style.fontFamily = document.getElementById("fontFamily").value;
+ preview.style.fontSize = document.getElementById("fontSize").value + "px";
+ preview.style.color = document.getElementById("fontColor").value;
+ preview.style.background =
+ document.getElementById("backgroundColor").value;
+
+ if(style === "minimal"){
+  preview.style.textShadow = "none";
+  preview.style.fontWeight = "normal";
+ }else{
+  preview.style.textShadow = "2px 2px 4px black";
+  preview.style.fontWeight = "bold";
+ }
+
+ const position = document.getElementById("subtitlePosition").value;
+ preview.style.textAlign = position === "top" ? "left" :
+  position === "bottom" ? "right" : "center";
+}
+
+function previewClip(){
+ if(!video.src){
+  document.getElementById("editStatus").textContent =
+   "Primero añade un video desde tu computadora.";
+  return;
+ }
+
+ const start = Number(document.getElementById("startTime").value);
+ const end = Number(document.getElementById("endTime").value);
+
+ if(start < 0 || end <= start || end > video.duration){
+  document.getElementById("editStatus").textContent =
+   "Comprueba los tiempos del clip.";
+  return;
+ }
+
+ video.currentTime = start;
+ video.play();
+
+ document.getElementById("editStatus").textContent =
+  "Reproduciendo el fragmento seleccionado.";
+}
+
+async function downloadClip(){
+ if(!video.src){
+  document.getElementById("editStatus").textContent =
+   "Añade un video antes de exportar.";
+  return;
+ }
+
+ if(!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream){
+  document.getElementById("editStatus").textContent =
+   "Tu navegador no permite esta exportación. Prueba Chrome o Edge.";
+  return;
+ }
+
+ document.getElementById("editStatus").textContent =
+  "La exportación avanzada necesita integrar el procesamiento de video.";
+}
 </script>
+
 </body>
 </html>
