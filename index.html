@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -34,11 +35,9 @@ input[type=range]{width:100%}
 <label>📎 Pegar enlace de YouTube</label>
 <input id="youtube" type="text" placeholder="https://www.youtube.com/watch?v=...">
 <button id="checkLink">Usar enlace</button>
-<p id="linkStatus" class="small">La integración para procesar enlaces de YouTube se añadirá en una próxima etapa.</p>
+<p id="linkStatus" class="small">La importación directa de YouTube requiere una integración adicional.</p>
 <div id="youtubePreview"></div>
-
 <hr style="border-color:#444;margin:22px 0">
-
 <label>📁 Subir video desde tu computadora</label>
 <input id="file" type="file" accept="video/*">
 <video id="video" controls></video>
@@ -112,7 +111,7 @@ document.getElementById('checkLink').onclick=()=>{
  const link=document.getElementById('youtube').value.trim();
  const valid=/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(link);
  document.getElementById('linkStatus').textContent=valid
- ?'Enlace reconocido. La importación y edición directa de YouTube aún requiere una integración de servidor.'
+ ?'Enlace reconocido. La importación y edición directa todavía requiere una integración de servidor.'
  :'Escribe un enlace válido de YouTube.';
 };
 
