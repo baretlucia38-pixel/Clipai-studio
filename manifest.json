@@ -1,0 +1,11 @@
+{
+  "name": "ClipAI Studio",
+  "short_name": "ClipAI",
+  "description": "Tu espacio personal para crear clips",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#100e16",
+  "theme_color": "#171320",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
